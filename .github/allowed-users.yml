@@ -1,0 +1,7 @@
+# List of users allowed to commit/merge to the main branch
+# Add GitHub usernames here
+allowed_users:
+  - rama098
+  # Add more authorized users below:
+  # - username1
+  # - username2

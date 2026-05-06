@@ -1,0 +1,29 @@
+name: PR to Main Branch Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify-author:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check PR author authorization
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          echo "PR Author: $PR_AUTHOR"
+          
+          # Extract allowed users from YAML
+          ALLOWED_USERS=$(grep -A 100 'allowed_users:' .github/allowed-users.yml | grep '  - ' | sed 's/  - //' | tr '\n' '|')
+          
+          if [[ ! "$ALLOWED_USERS" =~ (^|[|])$PR_AUTHOR([|]|$) ]]; then
+            echo " PR author '$PR_AUTHOR' is not in the authorized users list"
+            echo "This PR requires approval from an authorized user"
+          else
+            echo "PR author '$PR_AUTHOR' is authorized"
+          fi
