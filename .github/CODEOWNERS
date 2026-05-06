@@ -1,0 +1,9 @@
+# CODEOWNERS file for main branch protection
+# This file specifies who must review and approve pull requests
+
+# All changes to main branch require approval from authorized users
+* @rama098
+
+# Add more authorized reviewers below:
+# * @username1
+# * @username2

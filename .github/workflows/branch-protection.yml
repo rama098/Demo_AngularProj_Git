@@ -1,0 +1,40 @@
+name: Enforce Main Branch Protection
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-authorized-user:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout allowed users configuration
+        run: |
+          echo "Checking if commit author is authorized..."
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an')
+          echo "Commit author: $COMMIT_AUTHOR"
+
+      - name: Load allowed users
+        id: load_users
+        run: |
+          # Extract allowed users from YAML
+          ALLOWED_USERS=$(grep -A 100 'allowed_users:' .github/allowed-users.yml | grep '  - ' | sed 's/  - //' | tr '\n' '|')
+          echo "allowed_users=${ALLOWED_USERS%|}" >> $GITHUB_OUTPUT
+
+      - name: Verify authorized user
+        run: |
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an')
+          ALLOWED_USERS="${{ steps.load_users.outputs.allowed_users }}"
+          
+          if [[ ! "$ALLOWED_USERS" =~ (^|[|])$COMMIT_AUTHOR([|]|$) ]]; then
+            echo "Commit rejected: '$COMMIT_AUTHOR' is not authorized to commit to main branch"
+            echo "Allowed users: $ALLOWED_USERS"
+            exit 1
+          fi
+          echo "Commit author '$COMMIT_AUTHOR' is authorized"
